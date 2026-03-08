@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from decimal import Decimal
-from hotel.models import Hotel,hotelCategory,room,Facility,roomImg,Booking,bookingRoom,Review,Cart_Booking,Cart_bookingRoom
+from hotel.models import Hotel,hotelCategory,room,Facility,roomImg,Booking,bookingRoom,Review,RoomReview,Cart_Booking,Cart_bookingRoom
 from django.contrib.auth import get_user_model
 from hotel.services import BookingService
 
-
-
+# hotel
 
 class hotel_cat(serializers.ModelSerializer):
     class Meta:
@@ -22,7 +21,7 @@ class hotelserializerr(serializers.ModelSerializer):
 
 class hotelserializer(serializers.ModelSerializer):
     image = serializers.ImageField(required=False)
-    category=hotel_cat()
+    category=hotel_cat(read_only=True)
     class Meta:
         model=Hotel
         fields=['id','name','address','description','image','category']
@@ -44,13 +43,15 @@ class room_seria(serializers.ModelSerializer):
     
     class Meta:
         model = room
-        fields = ['id', 'hotel','room_num','cost_per_day','capecity','facility','available']             
+        fields = ['id', 'hotel','room_num','cost_per_day','capecity','facility','description','available']             
 
 class room_ser(serializers.ModelSerializer):
     facility=room_fac(many=True)
+    hotel=hotelserializerr()
+    images=roomImageSerializer(many=True, read_only=True)
     class Meta:
         model = room
-        fields = ['id', 'hotel','room_num','cost_per_day','capecity','facility','available']  
+        fields = ['id', 'hotel','room_num','cost_per_day','capecity','facility','description','images','available']  
 class SimpleUserSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField(
         method_name='get_current_user_name')
@@ -77,6 +78,23 @@ class ReviewSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         hotel_id = self.context['hotel_id']
         return Review.objects.create(hotel_id=hotel_id, **validated_data)
+
+class reviewSerializer(serializers.ModelSerializer):
+   
+    user = serializers.SerializerMethodField(method_name='get_user')
+
+    class Meta:
+        model = RoomReview
+        fields = ['id', 'user', 'rooms', 'ratings', 'comment']
+        read_only_fields = ['user', 'rooms']
+
+    def get_user(self, obj):
+        return SimpleUserSerializer(obj.user).data
+
+    def create(self, validated_data):
+        rooms_id = self.context['rooms_id']
+        return RoomReview.objects.create(rooms_id=rooms_id, **validated_data)
+
 
 
 class bookingroomSerializer(serializers.ModelSerializer):
@@ -117,7 +135,24 @@ class CartBookingSerializer(serializers.ModelSerializer):
             )
         return user
 
-    
+# class CartBookingSerializer(serializers.ModelSerializer):
+#     CartBookingRoom = bookingroomSerializer(many=True, read_only=True)
+
+#     total_price = serializers.SerializerMethodField()
+#     user = serializers.SerializerMethodField()
+
+#     class Meta:
+#         model = Cart_Booking
+#         fields = ['id', 'user', 'CartBookingRoom', 'total_price']
+
+#     def get_user(self, obj):
+#         return SimpleUserSerializer(obj.user).data
+
+#     def get_total_price(self, cart_booking):
+#         return sum(
+#             item.cartRoom.cost_per_day
+#             for item in cart_booking.CartBookingRoom.all()
+#         )    
 class AddbookingroomSerializer(serializers.ModelSerializer):
     cartRoom_id = serializers.IntegerField()
 
@@ -207,6 +242,7 @@ class CreateBookingser(serializers.Serializer):
     def to_representation(self, instance):
         return bookingSer(instance).data
 class bookingroom_ser(serializers.ModelSerializer):
+    Room = room_ser(read_only=True)  
     class Meta:
         model = bookingRoom
         fields = ['id', 'Room', 'cost_per_day']

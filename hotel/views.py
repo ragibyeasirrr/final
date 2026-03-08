@@ -1,8 +1,8 @@
 from django.shortcuts import render
-from hotel.models import Hotel,hotelCategory,room,Facility,roomImg,Booking,bookingRoom,Review,Cart_Booking,Cart_bookingRoom
+from hotel.models import Hotel,hotelCategory,room,Facility,roomImg,Booking,bookingRoom,Review,Cart_Booking,Cart_bookingRoom,RoomReview
 from hotel.services import BookingService
 from rest_framework.viewsets import ModelViewSet
-from hotel.serializers import hotelserializer,hotel_cat,room_seria,room_fac,roomImageSerializer,ReviewSerializer,bookingroom_ser,CartBookingSerializer,EmptySerializer,UpdatebookingSer,bookingSer,CreateBookingser,AddbookingroomSerializer,bookingroomSerializer,mostBookedroomSer,topfiveuser,room_ser,hotelserializerr
+from hotel.serializers import hotelserializer,hotel_cat,room_seria,room_fac,roomImageSerializer,ReviewSerializer,reviewSerializer,bookingroom_ser,CartBookingSerializer,EmptySerializer,UpdatebookingSer,bookingSer,CreateBookingser,AddbookingroomSerializer,bookingroomSerializer,mostBookedroomSer,topfiveuser,room_ser,hotelserializerr
 # Create your views here.
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, DestroyModelMixin
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -17,6 +17,12 @@ from django.db.models import Count, Sum
 from rest_framework.views import APIView
 from drf_yasg.utils import swagger_auto_schema
 from hotel.permissions import IsAdminOrReadOnly,IsReviewAuthorOrReadonly
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from hotel.paginations   import DefaultPagination
+from hotel.filters import roomFilter
+
+
 
 class hotelviewset(ModelViewSet):
     queryset=Hotel.objects.all()
@@ -112,10 +118,28 @@ class room_viewset(ModelViewSet):
     queryset=room.objects.all()
     serializer_class=room_seria 
     permission_classes = [IsAdminOrReadOnly]  
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = roomFilter
+    pagination_class = DefaultPagination
+    search_fields = ['hotel__name', 'description']
+    ordering_fields = ['cost_per_day', 'updated_at']
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return room_seria 
         return  room_ser 
+
+    def get_queryset(self):
+        queryset = room.objects.all()
+
+        facility = self.request.query_params.get('facility')
+
+        if facility:
+            facility_ids = facility.split(',')
+            queryset = queryset.filter(facility__id__in=facility_ids).distinct()
+
+        return queryset    
     @swagger_auto_schema(
         operation_summary='Retrive all Room'
     )
@@ -202,9 +226,12 @@ class room_fac_viewset(ModelViewSet):
 
 class room_img_viewset(ModelViewSet):
     parser_classes = [MultiPartParser, FormParser]
-    queryset=roomImg.objects.all()
+    
     serializer_class=roomImageSerializer 
     permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        return roomImg.objects.filter(rooms_id=self.kwargs['rooms_pk'])
     def perform_create(self, serializer):
         serializer.save(rooms_id=self.kwargs.get('rooms_pk'))
     @swagger_auto_schema(
@@ -244,6 +271,23 @@ class room_img_viewset(ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         """ patch a single Room Image"""
         return super().partial_update(request, *args, **kwargs)
+
+
+class reviewViewSet(ModelViewSet):
+    serializer_class = reviewSerializer
+    permission_classes = [IsReviewAuthorOrReadonly]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return RoomReview.objects.filter(rooms_id=self.kwargs.get('room_pk'))
+
+    def get_serializer_context(self):
+        return {'rooms_id': self.kwargs.get('room_pk')}
 
 
 class ReviewViewSet(ModelViewSet):
@@ -359,8 +403,45 @@ class cart_bookingviewset(CreateModelMixin, RetrieveModelMixin, DestroyModelMixi
             return Cart_Booking.objects.none()
         return Cart_Booking.objects.prefetch_related('CartBookingRoom__cartRoom').filter(user=self.request.user)
     
-    
+    def create(self, request, *args, **kwargs):
 
+       
+        existing_cart_booking = Cart_Booking.objects.filter(
+            user=request.user
+        ).first()
+
+        if existing_cart_booking:
+            serializer = self.get_serializer(existing_cart_booking)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return super().create(request, *args, **kwargs)
+    
+# class CartBookingViewSet(CreateModelMixin, RetrieveModelMixin, DestroyModelMixin, GenericViewSet):
+#     serializer_class = CartBookingSerializer
+#     permission_classes = [IsAuthenticated]
+
+#     def perform_create(self, serializer):
+#         serializer.save(user=self.request.user)
+
+#     def get_queryset(self):
+#         if getattr(self, 'swagger_fake_view', False):
+#             return Cart_Booking.objects.none()
+
+#         return Cart_Booking.objects.prefetch_related(
+#             'CartBookingRoom__cartRoom'
+#         ).filter(user=self.request.user)
+
+#     def create(self, request, *args, **kwargs):
+
+#         existing_cart_booking = Cart_Booking.objects.filter(
+#             user=request.user
+#         ).first()
+
+#         if existing_cart_booking:
+#             serializer = self.get_serializer(existing_cart_booking)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+
+#         return super().create(request, *args, **kwargs)
 class Cart_bookingroomViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'delete']
 

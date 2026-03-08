@@ -36,6 +36,7 @@ class Facility(models.Model):
 class room(models.Model):
     hotel=models.ForeignKey(Hotel,on_delete=models.CASCADE,related_name='room')
     room_num=models.CharField(max_length=50,unique=True)
+    description=models.TextField(blank=True,null=True)
     cost_per_day=models.DecimalField(max_digits=10,decimal_places=2)
     capecity=models.PositiveIntegerField( validators=[MinValueValidator(1), MaxValueValidator(5)])
     facility=models.ManyToManyField(Facility, related_name='room')
@@ -59,10 +60,23 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review by {self.user.first_name} on {self.hotel.name}" 
+    
 
+class RoomReview(models.Model):
+    rooms= models.ForeignKey(room, on_delete=models.CASCADE,related_name='review')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+    ratings = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Review by {self.user.first_name} on {self.rooms.hotel.name}" 
 class roomImg(models.Model):
     rooms=models.ForeignKey(room,on_delete=models.CASCADE,related_name='images')
-    #image = models.ImageField(upload_to="images/",blank=True,null=True) # validators=[validate_file_size]
+    
     image = CloudinaryField('image', blank=True, null=True) 
 
 class Cart_Booking(models.Model):

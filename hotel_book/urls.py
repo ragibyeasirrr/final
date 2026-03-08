@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 # from hotel.views import hotelviewset,hotel_cat_viewset,room_viewset,room_fac_viewset,room_img_viewset
-from hotel.views import hotel_cat_viewset,hotelviewset,room_viewset,room_fac_viewset,room_img_viewset,ReviewViewSet,Bookingviewset,cart_bookingviewset,Cart_bookingroomViewSet,see_num_booking,most_booked_room, top_five_user
+from hotel.views import hotel_cat_viewset,hotelviewset,room_viewset,room_fac_viewset,room_img_viewset,ReviewViewSet,reviewViewSet,Bookingviewset,cart_bookingviewset,Cart_bookingroomViewSet,see_num_booking,most_booked_room, top_five_user
 
 from rest_framework_nested import routers
 from django.urls import path, include
@@ -55,6 +55,9 @@ router.register("bookings",Bookingviewset,basename='booking')
 router.register("cart_booking",cart_bookingviewset,basename='cart_bookings')
 hotel_router = routers.NestedDefaultRouter(
     router, 'hotel', lookup='hotel')
+room_router = routers.NestedDefaultRouter(
+    router, 'room', lookup='room')
+room_router.register('rev', reviewViewSet, basename='room-review')
 cartbooking_router = routers.NestedDefaultRouter(
     router, 'cart_booking', lookup='cartbooking')
 hotel_router.register('reviews', ReviewViewSet, basename='hotel-review')
@@ -66,6 +69,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('', include(hotel_router.urls)),
     path('', include(cartbooking_router.urls)),
+    path('', include(room_router.urls)), 
     path('', include(roomimg_router.urls)), 
     path('admin/', admin.site.urls),
     path('auth/', include('djoser.urls')),

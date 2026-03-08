@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 # python manage.py runserver
+#python manage.py makemigrations
+#python manage.py migrate
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
@@ -25,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-q0%=wq8s8#vbrn@!=)v==#&=5+-aqq-3#)z7u2bsz+ujv&*@7n'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 
 ALLOWED_HOSTS =[".vercel.app", '127.0.0.1']
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drf_yasg',
+    'django_filters',
+    "corsheaders",
     'rest_framework',
     'djoser',
     'user',
@@ -50,6 +54,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  
+    "django.middleware.common.CommonMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -61,6 +67,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'hotel_book.urls'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
 
 TEMPLATES = [
     {
@@ -83,24 +93,24 @@ WSGI_APPLICATION = 'hotel_book.wsgi.app'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT', cast=int),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': config('DB_NAME'),
+#         'USER': config('DB_USER'),
+#         'PASSWORD': config('DB_PASSWORD'),
+#         'HOST': config('DB_HOST'),
+#         'PORT': config('DB_PORT', cast=int),
+#     }
+# }
 
 
 AUTH_USER_MODEL = 'user.User'
@@ -158,6 +168,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ]
     # 'DEFAULT_PERMISSION_CLASSES': [
     #     'rest_framework.permissions.IsAuthenticated',
     # ]
@@ -167,16 +180,43 @@ SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
 }
+FRONTEND_URL = "http://localhost:5173"
+# DJOSER = {
+#     'USER_CREATE_PASSWORD_RETYPE': True,
+#     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
+#     'SEND_ACTIVATION_EMAIL': True,
+#     'SERIALIZERS': {
+#         'user_create': 'user.serializers.UserCreateSerializer',
+#         'current_user': 'user.serializers.UserSerializer'
+#     },
+# }
+
+
+
+FRONTEND_PROTOCOL = "http"
+FRONTEND_DOMAIN = "localhost:5173"
 
 DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': 'activate/{uid}/{token}',
+    'EMAIL_FRONTEND_DOMAIN': FRONTEND_DOMAIN,
+    'EMAIL_FRONTEND_PROTOCOL': FRONTEND_PROTOCOL,
+
+    # 'USER_CREATE_PASSWORD_RETYPE': False,
     'SEND_ACTIVATION_EMAIL': True,
+
+  
+    'ACTIVATION_URL': 'activate/{uid}/{token}/',
+    'PASSWORD_RESET_CONFIRM_URL': 'reset-password/{uid}/{token}/',
+
+   
+    
+
     'SERIALIZERS': {
         'user_create': 'user.serializers.UserCreateSerializer',
-        'current_user': 'user.serializers.UserSerializer'
+        'current_user': 'user.serializers.UserSerializer',
     },
 }
+
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -194,6 +234,8 @@ cloudinary.config(
     api_secret = config('CLOUDINARY_API_SECRET'),
     secure = True
 )
+
+
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
