@@ -700,7 +700,7 @@ def payment_success(request):
         except Exception as e:
             print(f"Error: {str(e)}")
 
-    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/fail/")
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
 
 @csrf_exempt
 @api_view(['POST'])
