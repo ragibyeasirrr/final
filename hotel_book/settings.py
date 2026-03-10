@@ -263,8 +263,8 @@ SSL_COMMERZ = {
     "ISSANDBOX": True,  
 }
 
-BACKEND_URL = "https://final-dusky-seven.vercel.app/"
-FRONTEND_URL = "https://full-stack-h4j3.vercel.app/"
+BACKEND_URL = "https://final-dusky-seven.vercel.app"
+FRONTEND_URL = "https://full-stack-h4j3.vercel.app"
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
