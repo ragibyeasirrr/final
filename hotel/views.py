@@ -695,7 +695,7 @@ def payment_success(request):
                 booking.save()
                 print(f"Booking {booking.id} updated")
                 
-                return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/success/")
+                return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/success")
             
         except Exception as e:
             print(f"Error: {str(e)}")
