@@ -75,8 +75,9 @@ ROOT_URLCONF = 'hotel_book.urls'
 #     "http://localhost:5173",
 # ]
 CORS_ALLOWED_ORIGINS = [
-    # "https://full-stack-h4j3.vercel.app/",
-     "https://full-stack-bxlh.vercel.app/",
+    
+     "https://full-stack-bxlh.vercel.app",
+     
 ]
 
 TEMPLATES = [
@@ -213,9 +214,10 @@ SIMPLE_JWT = {
 
 
 
-FRONTEND_PROTOCOL = "http"
-FRONTEND_DOMAIN = "localhost:5173"
-
+# FRONTEND_PROTOCOL = "http"
+# FRONTEND_DOMAIN = "localhost:5173"
+FRONTEND_PROTOCOL = "https"
+FRONTEND_DOMAIN = "full-stack-bxlh.vercel.app"
 DJOSER = {
     'EMAIL_FRONTEND_DOMAIN': FRONTEND_DOMAIN,
     'EMAIL_FRONTEND_PROTOCOL': FRONTEND_PROTOCOL,
