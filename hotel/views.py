@@ -700,18 +700,18 @@ def payment_success(request):
         except Exception as e:
             print(f"Error: {str(e)}")
 
-    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings")
 
 @csrf_exempt
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([AllowAny])
 def payment_cancel(request):
-    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings")
 
 @csrf_exempt
 @api_view(['POST'])
 @authentication_classes([])
 @permission_classes([AllowAny])
 def payment_fail(request):
-    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings")
