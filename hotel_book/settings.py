@@ -75,7 +75,8 @@ ROOT_URLCONF = 'hotel_book.urls'
 #     "http://localhost:5173",
 # ]
 CORS_ALLOWED_ORIGINS = [
-    "https://full-stack-h4j3.vercel.app/",
+    # "https://full-stack-h4j3.vercel.app/",
+     "https://full-stack-bxlh.vercel.app/",
 ]
 
 TEMPLATES = [
@@ -199,7 +200,7 @@ SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
 }
-FRONTEND_URL = "http://localhost:5173"
+# FRONTEND_URL = "http://localhost:5173"
 # DJOSER = {
 #     'USER_CREATE_PASSWORD_RETYPE': True,
 #     'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
