@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 # python manage.py runserver
 #python manage.py makemigrations
 # python manage.py migrate
+# git add .
+# git commit -m "Initial commit"
+# git push
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
@@ -68,8 +71,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hotel_book.urls'
 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",
+# ]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
+    "https://full-stack-h4j3.vercel.app/",
 ]
 
 TEMPLATES = [
