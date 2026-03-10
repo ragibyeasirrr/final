@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 # python manage.py runserver
 #python manage.py makemigrations
-#python manage.py migrate
+# python manage.py migrate
 from pathlib import Path
 from datetime import timedelta
 from decouple import config
@@ -163,17 +163,30 @@ MEDIA_ROOT = BASE_DIR / 'media'
 #     ),
 # }
 
+# REST_FRAMEWORK = {
+#     'COERCE_DECIMAL_TO_STRING': False,
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+#     'DEFAULT_FILTER_BACKENDS': [
+#         'django_filters.rest_framework.DjangoFilterBackend',
+#     ]
+#     # 'DEFAULT_PERMISSION_CLASSES': [
+#     #     'rest_framework.permissions.IsAuthenticated',
+#     # ]
+# }
+
 REST_FRAMEWORK = {
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ]
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ]
 }
 
 SIMPLE_JWT = {
@@ -236,7 +249,16 @@ cloudinary.config(
 )
 
 
+# settings.py
 
+SSL_COMMERZ = {
+    "STORE_ID": "hotel69ae0e32111a6",
+    "STORE_PASS": "hotel69ae0e32111a6@ssl",
+    "ISSANDBOX": True,  
+}
+
+BACKEND_URL = "http://127.0.0.1:8000"
+FRONTEND_URL = "http://localhost:5173"
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 

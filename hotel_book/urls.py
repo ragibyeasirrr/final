@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 # from hotel.views import hotelviewset,hotel_cat_viewset,room_viewset,room_fac_viewset,room_img_viewset
-from hotel.views import hotel_cat_viewset,hotelviewset,room_viewset,room_fac_viewset,room_img_viewset,ReviewViewSet,reviewViewSet,Bookingviewset,cart_bookingviewset,Cart_bookingroomViewSet,see_num_booking,most_booked_room, top_five_user
+from hotel.views import hotel_cat_viewset,hotelviewset,room_viewset,room_fac_viewset,room_img_viewset,ReviewViewSet,reviewViewSet,Bookingviewset,cart_bookingviewset,Cart_bookingroomViewSet,see_num_booking,most_booked_room, top_five_user,initiate_payment,payment_cancel,payment_fail,payment_success
 
 from rest_framework_nested import routers
 from django.urls import path, include
@@ -71,6 +71,10 @@ urlpatterns = [
     path('', include(cartbooking_router.urls)),
     path('', include(room_router.urls)), 
     path('', include(roomimg_router.urls)), 
+    path('payment/initiate/', initiate_payment),
+    path('payment/success/', payment_success),
+    path('payment/cancel/', payment_cancel),
+    path('payment/fail/', payment_fail),
     path('admin/', admin.site.urls),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),

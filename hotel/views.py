@@ -21,6 +21,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from hotel.paginations   import DefaultPagination
 from hotel.filters import roomFilter
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny
+
+# from sslcommerz_python.payment import SSLCOMMERZ
+# from sslcommerz_python.payment import SSLCOMMERZ
+from sslcommerz_lib import SSLCOMMERZ
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.http import HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
+
+from django.conf import settings as main_settings
 
 
 
@@ -599,3 +613,105 @@ class Bookingviewset(ModelViewSet):
         return super().partial_update(request, *args, **kwargs)
 
 
+
+
+
+
+
+@api_view(['POST'])
+def initiate_payment(request):
+    user = request.user
+    
+    amount = request.data.get("amount")
+    booking_id = request.data.get("orderId")
+    num_items = request.data.get("numItems")
+
+    if not amount or not booking_id:
+        return Response({"error": "Missing Fields"}, status=400)
+
+    ssl_settings = {
+        "store_id": main_settings.SSL_COMMERZ["STORE_ID"],
+        "store_pass": main_settings.SSL_COMMERZ["STORE_PASS"],
+        "issandbox": main_settings.SSL_COMMERZ["ISSANDBOX"],
+    }
+
+    sslcz = SSLCOMMERZ(ssl_settings)
+
+   
+    short_id = str(booking_id).replace('-', '')[:20]
+
+    post_body = {
+        'total_amount': float(amount),
+        'currency': "BDT",
+        'tran_id': f"txn_{short_id}",
+        'success_url': f"{main_settings.BACKEND_URL}/payment/success/",
+        'fail_url': f"{main_settings.BACKEND_URL}/payment/fail/",
+        'cancel_url': f"{main_settings.BACKEND_URL}/payment/cancel/",
+        'emi_option': 0,
+        'cus_name': f"{user.first_name} {user.last_name}" if user.first_name else "Guest",
+        'cus_email': user.email,
+        'cus_phone': getattr(user, 'phone_number', "01700000000"),
+        'cus_add1': "Dhaka",
+        'cus_city': "Dhaka",
+        'cus_country': "Bangladesh",
+        'shipping_method': "No", 
+        'num_of_item': int(num_items) if num_items else 1,
+        'product_name': "Hotel Booking",
+        'product_category': "Service",
+        'product_profile': "general",
+    }
+
+    try:
+        response = sslcz.createSession(post_body)
+        if response.get("status") == 'SUCCESS':
+            return Response({"payment_url": response['GatewayPageURL']})
+        else:
+           
+            print("SSL Error:", response.get("failedreason"))
+            return Response({"error": response.get("failedreason", "SSLCommerz Error")}, status=400)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
+
+
+
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def payment_success(request):
+    print("Inside success. Data received:", request.data)
+    
+    tran_id = request.data.get("tran_id")
+    
+    if tran_id:
+        try:
+            booking_short_id = tran_id.split('_')[1]
+            booking = Booking.objects.filter(id__icontains=booking_short_id).first()
+            
+            if booking:
+                booking.status = "booked"
+                booking.save()
+                print(f"Booking {booking.id} updated")
+                
+                return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/success/")
+            
+        except Exception as e:
+            print(f"Error: {str(e)}")
+
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/fail/")
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def payment_cancel(request):
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def payment_fail(request):
+    return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings/")
