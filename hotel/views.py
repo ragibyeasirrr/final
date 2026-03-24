@@ -676,33 +676,6 @@ def initiate_payment(request):
 
 
 
-# @csrf_exempt
-# @api_view(['POST'])
-# @authentication_classes([])
-# @permission_classes([AllowAny])
-# def payment_success(request):
-#     print("Inside success. Data received:", request.data)
-    
-#     tran_id = request.data.get("tran_id")
-    
-#     if tran_id:
-#         try:
-#             booking_short_id = tran_id.split('_')[1]
-#             booking = Booking.objects.filter(id__icontains=booking_short_id).first()
-            
-#             if booking:
-#                 booking.status = "booked"
-#                 booking.save()
-#                 print(f"Booking {booking.id} updated")
-                
-#                 return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/success")
-            
-#         except Exception as e:
-#             print(f"Error: {str(e)}")
-
-#     return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings")
-
-
 @csrf_exempt
 @api_view(['POST', 'GET'])
 @authentication_classes([])
