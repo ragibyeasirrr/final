@@ -638,12 +638,12 @@ def initiate_payment(request):
     sslcz = SSLCOMMERZ(ssl_settings)
 
    
-    short_id = str(booking_id).replace('-', '')[:20]
+    # short_id = str(booking_id).replace('-', '')[:20]
 
     post_body = {
         'total_amount': float(amount),
         'currency': "BDT",
-        'tran_id': f"txn_{short_id}",
+        'tran_id': str(booking_id),
         'success_url': f"{main_settings.BACKEND_URL}/payment/success/",
         'fail_url': f"{main_settings.BACKEND_URL}/payment/fail/",
         'cancel_url': f"{main_settings.BACKEND_URL}/payment/cancel/",
@@ -709,26 +709,21 @@ def initiate_payment(request):
 @permission_classes([AllowAny])
 def payment_success(request):
     data = request.POST if request.method == 'POST' else request.GET
-    print("Inside success. Data received:", data)
-    
     tran_id = data.get("tran_id")
     
     if tran_id:
         try:
-            booking_short_id = tran_id.replace('txn_', '')
-            booking = Booking.objects.filter(id__icontains=booking_short_id).first()
+           
+            booking = Booking.objects.filter(id=tran_id).first()
             
             if booking:
                 booking.status = "booked"
                 booking.save()
-                print(f"Booking {booking.id} updated")
-                
                 return redirect(f"{main_settings.FRONTEND_URL}/dashboard/payment/success")
             else:
-                print("Booking not found for ID:", booking_short_id)
-            
+                print(f"Booking not found for UUID: {tran_id}")
         except Exception as e:
-            print(f"Error during processing success: {str(e)}")
+            print(f"Error: {str(e)}")
 
     return redirect(f"{main_settings.FRONTEND_URL}/dashboard/Bookings")
 
