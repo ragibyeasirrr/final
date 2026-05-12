@@ -77,6 +77,7 @@ ROOT_URLCONF = 'hotel_book.urls'
 CORS_ALLOWED_ORIGINS = [
     
      "https://full-stack-bxlh.vercel.app",
+     "http://localhost:5173",
      
 ]
 
